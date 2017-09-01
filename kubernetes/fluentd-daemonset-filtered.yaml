@@ -1,0 +1,115 @@
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  namespace: kube-system
+  labels:
+    k8s-app: fluentd-gcp-custom
+  name: fluentd-gcp-v2.0
+spec:
+  selector:
+    matchLabels:
+      k8s-app: fluentd-gcp-custom
+  template:
+    metadata:
+      annotations:
+        scheduler.alpha.kubernetes.io/critical-pod: ""
+      creationTimestamp: null
+      labels:
+        k8s-app: fluentd-gcp-custom
+    spec:
+      containers:
+      - command:
+        - /bin/sh
+        - -c
+        - /run.sh $FLUENTD_ARGS 2>&1 >>/var/log/fluentd.log
+        env:
+        - name: FLUENTD_ARGS
+          value: --no-supervisor
+        image: gcr.io/google-containers/fluentd-gcp:2.0.5
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - |
+              LIVENESS_THRESHOLD_SECONDS=${LIVENESS_THRESHOLD_SECONDS:-300}; STUCK_THRESHOLD_SECONDS=${LIVENESS_THRESHOLD_SECONDS:-900}; if [ ! -e /var/log/fluentd-buffers ]; then
+                exit 1;
+              fi; LAST_MODIFIED_DATE=`stat /var/log/fluentd-buffers | grep Modify | sed -r "s/Modify: (.*)/\1/"`; LAST_MODIFIED_TIMESTAMP=`date -d "$LAST_MODIFIED_DATE" +%s`; if [ `date +%s` -gt `expr $LAST_MODIFIED_TIMESTAMP + $STUCK_THRESHOLD_SECONDS` ]; then
+                rm -rf /var/log/fluentd-buffers;
+                exit 1;
+              fi; if [ `date +%s` -gt `expr $LAST_MODIFIED_TIMESTAMP + $LIVENESS_THRESHOLD_SECONDS` ]; then
+                exit 1;
+              fi;
+          failureThreshold: 3
+          initialDelaySeconds: 600
+          periodSeconds: 60
+          successThreshold: 1
+          timeoutSeconds: 1
+        name: fluentd-gcp
+        resources:
+          limits:
+            memory: 800Mi
+          requests:
+            cpu: 100m
+            memory: 800Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /var/log
+          name: varlog
+        - mountPath: /var/lib/docker/containers
+          name: varlibdockercontainers
+          readOnly: true
+        - mountPath: /host/lib
+          name: libsystemddir
+          readOnly: true
+        - mountPath: /etc/fluent/config.d
+          name: config-volume
+      - command:
+        - /monitor
+        - --component=fluentd
+        - --stackdriver-prefix=container.googleapis.com/internal/addons
+        - --whitelisted-metrics=logging_line_count,logging_entry_count
+        image: gcr.io/google-containers/prometheus-to-sd:v0.1.0
+        imagePullPolicy: IfNotPresent
+        name: prometheus-to-sd-exporter
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /etc/ssl/certs
+          name: ssl-certs
+      dnsPolicy: Default
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      tolerations:
+      - effect: NoSchedule
+        key: node.alpha.kubernetes.io/ismaster
+      - effect: NoExecute
+        operator: Exists
+      volumes:
+      - hostPath:
+          path: /var/log
+        name: varlog
+      - hostPath:
+          path: /var/lib/docker/containers
+        name: varlibdockercontainers
+      - hostPath:
+          path: /usr/lib64
+        name: libsystemddir
+#[START configMapNameDS]
+      - configMap:
+          defaultMode: 420
+          name: fluentd-gcp-config-filtered
+        name: config-volume
+#[END configMapNameDS]
+      - hostPath:
+          path: /etc/ssl/certs
+        name: ssl-certs
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: 1
+    type: RollingUpdate
