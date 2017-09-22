@@ -1,12 +1,12 @@
 kind: ConfigMap
 apiVersion: v1
 metadata:
-#[START configMapNameCM]
+#[[START configMapNameCM]]
   name: fluentd-gcp-config
   namespace: kube-system
   labels:
     k8s-app: fluentd-gcp-custom
-#[END configMapNameCM]
+#[[END configMapNameCM]]
 data:
   containers.input.conf: |-
     # This configuration file for Fluentd is used
