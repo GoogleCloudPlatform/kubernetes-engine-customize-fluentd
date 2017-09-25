@@ -24,15 +24,7 @@ gcloud projects add-iam-policy-binding $PROJECT \
 gcloud projects add-iam-policy-binding $PROJECT \
   --member serviceAccount:${ACCOUNT_NAME}@${PROJECT}.iam.gserviceaccount.com \
   --role roles/monitoring.metricWriter
-  
-gcloud projects add-iam-policy-binding $PROJECT \
-  --member serviceAccount:${ACCOUNT_NAME}@${PROJECT}.iam.gserviceaccount.com \
-  --role roles/iam.serviceAccountActor 
-  
+   
 gcloud projects add-iam-policy-binding $PROJECT \
   --member serviceAccount:${ACCOUNT_NAME}@${PROJECT}.iam.gserviceaccount.com \
   --role roles/container.admin 
-
-gcloud iam service-accounts keys create \
-  ${ACCOUNT_NAME}.json \
-  --iam-account ${ACCOUNT_NAME}@${PROJECT}.iam.gserviceaccount.com

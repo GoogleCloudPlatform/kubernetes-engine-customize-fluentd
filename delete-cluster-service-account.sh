@@ -25,10 +25,6 @@ gcloud projects remove-iam-policy-binding $PROJECT \
   
 gcloud projects remove-iam-policy-binding $PROJECT \
   --member serviceAccount:${ACCOUNT_NAME}@${PROJECT}.iam.gserviceaccount.com \
-  --role roles/iam.serviceAccountActor 
-  
-gcloud projects remove-iam-policy-binding $PROJECT \
-  --member serviceAccount:${ACCOUNT_NAME}@${PROJECT}.iam.gserviceaccount.com \
   --role roles/container.admin 
 
 gcloud iam service-accounts delete ${ACCOUNT_NAME}@${PROJECT}.iam.gserviceaccount.com

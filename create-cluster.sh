@@ -12,12 +12,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-gcloud container clusters create gke-with-custom-fluentd \
---zone us-east1-b \
---cluster-version=1.7.5 \
---no-enable-cloud-logging \
---scopes=logging-write,monitoring \
---tags=gke-cluster-with-customized-fluentd
+gcloud beta container clusters create gke-with-custom-fluentd \
+    --service-account=cluster-service-account@$(gcloud config get-value project).iam.gserviceaccount.com \
+    --zone us-east1-b \
+    --cluster-version=1.7.5 \
+    --no-enable-cloud-logging \
+    --scopes=logging-write,monitoring \
+    --tags=gke-cluster-with-customized-fluentd
 
 
 
