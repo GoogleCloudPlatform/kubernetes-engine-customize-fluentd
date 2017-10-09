@@ -14,9 +14,6 @@ The repository contains 4 types of artifiacts
 
 ## Contact Us
 
-Please use [issue tracker](https://github.com/GoogleCloudPlatform/container-engine-customize-fluentd/issues)
-on GitHub to report any bugs, comments or questions regarding SDK development.
-
 We welcome all usage-related questions on [Stack Overflow](http://stackoverflow.com/questions/tagged/google-customizing-fluentd-in-container-engine)
 tagged with `google-cloud-container-engine`.
 
