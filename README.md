@@ -1,6 +1,6 @@
 # Customizing Fluentd for GKE Sample Code
 
-This is the sample code for the Customizing fluentd in Google Container Engine.  The tutorial explains how to run a custom fluentd daemonset inside of GKE that sends logs to StackDriver. 
+This is the sample code for the Customizing fluentd in Google Kubernetes Engine.  The tutorial explains how to run a custom fluentd daemonset inside of GKE that sends logs to StackDriver. 
 
 
 ## Overview
@@ -17,8 +17,8 @@ The repository contains 4 types of artifiacts
 Please use [issue tracker](https://github.com/GoogleCloudPlatform/container-engine-customize-fluentd/issues)
 on GitHub to report any bugs, comments or questions regarding SDK development.
 
-We welcome all usage-related questions on [Stack Overflow](http://stackoverflow.com/questions/tagged/google-customizing-fluentd-in-container-engine)
-tagged with `google-cloud-container-engine`.
+We welcome all usage-related questions on [Stack Overflow](http://stackoverflow.com/questions/tagged/google-customizing-fluentd-in-kubernetes-engine)
+tagged with `google-cloud-kubernetes-engine`.
 
 ## More Information
 
