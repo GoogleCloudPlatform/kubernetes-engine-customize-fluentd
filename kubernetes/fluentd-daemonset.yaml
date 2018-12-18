@@ -25,7 +25,7 @@ spec:
         env:
         - name: FLUENTD_ARGS
           value: --no-supervisor
-        image: gcr.io/google-containers/fluentd-gcp:2.0.5
+        image: gcr.io/google-containers/fluentd-gcp:2.0.18
         imagePullPolicy: IfNotPresent
         livenessProbe:
           exec:
