@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright 2017 Google Inc. All Rights Reserved.
+# Copyright 2019 Google Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,14 +12,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 gcloud beta container clusters create gke-with-custom-fluentd \
-    --service-account=cluster-service-account@$(gcloud config get-value project).iam.gserviceaccount.com \
-    --zone us-east1-b \
-    --cluster-version=1.7.5 \
-    --no-enable-cloud-logging \
-    --scopes=logging-write,monitoring \
-    --tags=gke-cluster-with-customized-fluentd
-
-
-
-
+  --zone us-east1-b \
+  --no-enable-cloud-logging \
+  --tags=gke-cluster-with-customized-fluentd \
+  --scopes=logging-write

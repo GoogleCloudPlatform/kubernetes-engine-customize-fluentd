@@ -1,14 +1,17 @@
 apiVersion: extensions/v1beta1
 kind: DaemonSet
 metadata:
-  namespace: kube-system
   labels:
     k8s-app: fluentd-gcp-custom
-  name: fluentd-gcp-v2.0
+    version: v3.2.0
+  name: fluentd-gcp-v3.2.0
+  namespace: kube-system
 spec:
+  revisionHistoryLimit: 10
   selector:
     matchLabels:
       k8s-app: fluentd-gcp-custom
+      version: v3.2.0
   template:
     metadata:
       annotations:
@@ -16,16 +19,18 @@ spec:
       creationTimestamp: null
       labels:
         k8s-app: fluentd-gcp-custom
+        version: v3.2.0
     spec:
       containers:
-      - command:
-        - /bin/sh
-        - -c
-        - /run.sh $FLUENTD_ARGS 2>&1 >>/var/log/fluentd.log
-        env:
-        - name: FLUENTD_ARGS
-          value: --no-supervisor
-        image: gcr.io/google-containers/fluentd-gcp:2.0.18
+      - env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: spec.nodeName
+        - name: STACKDRIVER_METADATA_AGENT_URL
+          value: http://$(NODE_NAME):8799
+        image: gcr.io/stackdriver-agents/stackdriver-logging-agent:0.6-1.6.0-1
         imagePullPolicy: IfNotPresent
         livenessProbe:
           exec:
@@ -35,10 +40,10 @@ spec:
             - |
               LIVENESS_THRESHOLD_SECONDS=${LIVENESS_THRESHOLD_SECONDS:-300}; STUCK_THRESHOLD_SECONDS=${LIVENESS_THRESHOLD_SECONDS:-900}; if [ ! -e /var/log/fluentd-buffers ]; then
                 exit 1;
-              fi; LAST_MODIFIED_DATE=`stat /var/log/fluentd-buffers | grep Modify | sed -r "s/Modify: (.*)/\1/"`; LAST_MODIFIED_TIMESTAMP=`date -d "$LAST_MODIFIED_DATE" +%s`; if [ `date +%s` -gt `expr $LAST_MODIFIED_TIMESTAMP + $STUCK_THRESHOLD_SECONDS` ]; then
+              fi; touch -d "${STUCK_THRESHOLD_SECONDS} seconds ago" /tmp/marker-stuck; if [[ -z "$(find /var/log/fluentd-buffers -type f -newer /tmp/marker-stuck -print -quit)" ]]; then
                 rm -rf /var/log/fluentd-buffers;
                 exit 1;
-              fi; if [ `date +%s` -gt `expr $LAST_MODIFIED_TIMESTAMP + $LIVENESS_THRESHOLD_SECONDS` ]; then
+              fi; touch -d "${LIVENESS_THRESHOLD_SECONDS} seconds ago" /tmp/marker-liveness; if [[ -z "$(find /var/log/fluentd-buffers -type f -newer /tmp/marker-liveness -print -quit)" ]]; then
                 exit 1;
               fi;
           failureThreshold: 3
@@ -49,10 +54,11 @@ spec:
         name: fluentd-gcp
         resources:
           limits:
-            memory: 800Mi
+            cpu: "1"
+            memory: 500Mi
           requests:
             cpu: 100m
-            memory: 800Mi
+            memory: 200Mi
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
         volumeMounts:
@@ -61,56 +67,60 @@ spec:
         - mountPath: /var/lib/docker/containers
           name: varlibdockercontainers
           readOnly: true
-        - mountPath: /host/lib
-          name: libsystemddir
-          readOnly: true
-        - mountPath: /etc/fluent/config.d
+        - mountPath: /etc/google-fluentd/config.d
           name: config-volume
       - command:
         - /monitor
-        - --component=fluentd
         - --stackdriver-prefix=container.googleapis.com/internal/addons
-        - --whitelisted-metrics=logging_line_count,logging_entry_count
-        image: gcr.io/google-containers/prometheus-to-sd:v0.1.0
+        - --api-override=https://monitoring.googleapis.com/
+        - --source=fluentd:http://localhost:24231?whitelisted=stackdriver_successful_requests_count,stackdriver_failed_requests_count,stackdriver_ingested_entries_count,stackdriver_dropped_entries_count
+        - --pod-id=$(POD_NAME)
+        - --namespace-id=$(POD_NAMESPACE)
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+        image: k8s.gcr.io/prometheus-to-sd:v0.3.1
         imagePullPolicy: IfNotPresent
         name: prometheus-to-sd-exporter
         resources: {}
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
-        volumeMounts:
-        - mountPath: /etc/ssl/certs
-          name: ssl-certs
       dnsPolicy: Default
+      nodeSelector:
+        beta.kubernetes.io/fluentd-ds-ready: "true"
+      priorityClassName: system-node-critical
       restartPolicy: Always
       schedulerName: default-scheduler
       securityContext: {}
       terminationGracePeriodSeconds: 30
       tolerations:
-      - effect: NoSchedule
-        key: node.alpha.kubernetes.io/ismaster
       - effect: NoExecute
+        operator: Exists
+      - effect: NoSchedule
         operator: Exists
       volumes:
       - hostPath:
           path: /var/log
+          type: ""
         name: varlog
       - hostPath:
           path: /var/lib/docker/containers
+          type: ""
         name: varlibdockercontainers
-      - hostPath:
-          path: /usr/lib64
-        name: libsystemddir
-#[START configMapNameDS]
       - configMap:
           defaultMode: 420
           name: fluentd-gcp-config
         name: config-volume
-#[END configMapNameDS]
-      - hostPath:
-          path: /etc/ssl/certs
-        name: ssl-certs
+  templateGeneration: 2
   updateStrategy:
     rollingUpdate:
       maxUnavailable: 1
     type: RollingUpdate
-
