@@ -1,10 +1,12 @@
 kind: ConfigMap
 apiVersion: v1
 metadata:
+#[[START configMapNameCM]]
   name: fluentd-gcp-config
   namespace: kube-system
   labels:
     k8s-app: fluentd-gcp-custom
+#[[END configMapNameCM]]
 data:
   containers.input.conf: |-
     # This configuration file for Fluentd is used
@@ -85,6 +87,37 @@ data:
       emit_invalid_record_to_error false
       key_name log
     </filter>
+
+    # [[START scrubbingFilters]]
+    ############################################################################################################
+    #  ### sample log scrubbing filters
+    #  #replace social security numbers
+    # <filter reform.**>
+    #   @type record_transformer
+    #   enable_ruby true
+    #   <record>
+    #     log ${record["log"].gsub(/[0-9]{3}-*[0-9]{2}-*[0-9]{4}/,"xxx-xx-xxxx")}
+    #   </record>
+    # </filter>
+    # # replace credit card numbers that appear in the logs
+    # <filter reform.**>
+    #   @type record_transformer
+    #   enable_ruby true
+    #   <record>
+    #      log ${record["log"].gsub(/[0-9]{4} *[0-9]{4} *[0-9]{4} *[0-9]{4}/,"xxxx xxxx xxxx xxxx")}
+    #   </record>
+    # </filter>
+    # # replace email addresses that appear in the logs
+    # <filter reform.**>
+    #   @type record_transformer
+    #   enable_ruby true
+    #   <record>
+    #     log ${record["log"].gsub(/[\w+\-]+@[a-z\d\-]+(\.[a-z\d\-]+)*\.[a-z]+/i,"user@email.tld")}
+    #   </record>
+    # </filter>
+    # ### end sample log scrubbing filters
+    #############################################################################################################
+    # [[END scrubbingFilters]]
 
     <match reform.**>
       @type record_reformer

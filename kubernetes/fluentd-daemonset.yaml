@@ -115,10 +115,12 @@ spec:
           path: /var/lib/docker/containers
           type: ""
         name: varlibdockercontainers
+#[START configMapNameDS]
       - configMap:
           defaultMode: 420
           name: fluentd-gcp-config
         name: config-volume
+#[END configMapNameDS]
   templateGeneration: 2
   updateStrategy:
     rollingUpdate:
