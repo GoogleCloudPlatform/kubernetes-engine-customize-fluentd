@@ -15,7 +15,7 @@ var logStatements = [4]string{
 	"error happened with social security number 111-22-3333",
 	"Something happened..with social 222334444",
 	"Processing credit card 1234 5678 9012 3456",
-	"Users email is joker@batman.com"}
+	"Users email is john.doe@example.com"}
 
 //Convert a string to an int, but consume any error and use the default instead.
 func convertToInt(s string, def int) int {
