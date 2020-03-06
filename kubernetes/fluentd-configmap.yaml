@@ -202,14 +202,14 @@ data:
     # This section is exclusive for k8s_container logs. Those come with
     # 'stderr'/'stdout' tags.
     # TODO(instrumentation): Reconsider this workaround later.
-    # Trim the entries which exceed slightly less than 100KB, to avoid
+    # Trim the entries which exceed slightly less than 256KB, to avoid
     # dropping them. It is a necessity, because Stackdriver only supports
-    # entries that are up to 100KB in size.
+    # entries that are up to 256KB in size.
     <filter {stderr,stdout}>
       @type record_transformer
       enable_ruby true
       <record>
-        message ${record['message'].length > 100000 ? "[Trimmed]#{record['message'][0..100000]}..." : record['message']}
+        message ${record['message'].length > 256000 ? "[Trimmed]#{record['message'][0..256000]}..." : record['message']}
       </record>
     </filter>
 
