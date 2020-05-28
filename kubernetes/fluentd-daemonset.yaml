@@ -12,6 +12,7 @@ spec:
     matchLabels:
       k8s-app: fluentd-gcp-custom
       version: v3.2.0
+      name: fluentd-gcp-v3.2.0
   template:
     metadata:
       annotations:
@@ -20,6 +21,7 @@ spec:
       labels:
         k8s-app: fluentd-gcp-custom
         version: v3.2.0
+        name: fluentd-gcp-v3.2.0
     spec:
       containers:
       - env:
@@ -121,8 +123,4 @@ spec:
           name: fluentd-gcp-config
         name: config-volume
 #[END configMapNameDS]
-  templateGeneration: 2
-  updateStrategy:
-    rollingUpdate:
-      maxUnavailable: 1
-    type: RollingUpdate
+
