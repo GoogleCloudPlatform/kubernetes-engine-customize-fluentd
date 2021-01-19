@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-gcloud beta container clusters create gke-with-custom-fluentd \
+gcloud container clusters create gke-with-custom-fluentd \
   --zone us-east1-b \
   --no-enable-stackdriver-kubernetes \
   --tags=gke-cluster-with-customized-fluentd \
