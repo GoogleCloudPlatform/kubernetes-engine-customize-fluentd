@@ -15,6 +15,6 @@
 
 gcloud container clusters create gke-with-custom-fluentd \
   --zone us-east1-b \
-  --no-enable-stackdriver-kubernetes \
+  --logging=SYSTEM \
   --tags=gke-cluster-with-customized-fluentd \
   --scopes=logging-write
