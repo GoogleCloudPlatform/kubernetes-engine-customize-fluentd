@@ -17,4 +17,4 @@ gcloud container clusters create gke-with-custom-fluentd \
   --zone us-east1-b \
   --logging=SYSTEM \
   --tags=gke-cluster-with-customized-fluentd \
-  --scopes=logging-write
+  --scopes=logging-write,storage-rw
